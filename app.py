@@ -126,13 +126,48 @@ temperature = st.number_input("Temperature (°C)", 0.0, 50.0, 25.0)
 humidity = st.number_input("Humidity (%)", 0.0, 100.0, 80.0)
 ph = st.number_input("Soil pH", 0.0, 14.0, 6.5)
 rainfall = st.number_input("Rainfall (mm)", 0.0, 500.0, 200.0)
-
 if st.button("🌾 Recommend Crop"):
-    # Prepare input
-    sample = pd.DataFrame([[N, P, K, temperature, humidity, ph, rainfall]], columns=X.columns)
-    sample_scaled = scaler.transform(sample)
 
-    # Predict
-    prediction = rf.predict(sample_scaled)[0]
+    # ✅ STEP 1: DEFINE MIN & MAX CONDITIONS
+    MIN_CONDITIONS = {
+        "N": 10,
+        "P": 5,
+        "K": 5,
+        "temperature": 5,
+        "humidity": 20,
+        "ph": 4.5,
+        "rainfall": 50
+    }
 
-    st.success(f"✅ **Recommended Crop:** 🌿 *{prediction}*")
+    MAX_CONDITIONS = {
+        "N": 150,
+        "P": 150,
+        "K": 205,
+        "temperature": 40,
+        "humidity": 95,
+        "ph": 9.0,
+        "rainfall": 300
+    }
+
+    # ✅ STEP 2: VALIDATE CONDITIONS
+    if (
+        N < MIN_CONDITIONS["N"] or N > MAX_CONDITIONS["N"] or
+        P < MIN_CONDITIONS["P"] or P > MAX_CONDITIONS["P"] or
+        K < MIN_CONDITIONS["K"] or K > MAX_CONDITIONS["K"] or
+        temperature < MIN_CONDITIONS["temperature"] or temperature > MAX_CONDITIONS["temperature"] or
+        humidity < MIN_CONDITIONS["humidity"] or humidity > MAX_CONDITIONS["humidity"] or
+        ph < MIN_CONDITIONS["ph"] or ph > MAX_CONDITIONS["ph"] or
+        rainfall < MIN_CONDITIONS["rainfall"] or rainfall > MAX_CONDITIONS["rainfall"]
+    ):
+        st.error("❌ Conditions are outside the safe range for crop growth.")
+
+    # ✅ STEP 3: PREDICT ONLY IF CONDITIONS ARE VALID
+    else:
+        sample = pd.DataFrame(
+            [[N, P, K, temperature, humidity, ph, rainfall]],
+            columns=X.columns
+        )
+        sample_scaled = scaler.transform(sample)
+        prediction = rf.predict(sample_scaled)[0]
+
+        st.success(f"✅ *Recommended Crop:* 🌿 {prediction}")
